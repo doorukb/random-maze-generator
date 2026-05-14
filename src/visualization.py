@@ -82,7 +82,6 @@ def visualize_binary_maze(matrix, height=800, width=800, save_dir=None):
 if __name__ == "__main__":
     # A sample 15x15 binary matrix representing a maze
     # 1s are walls, 0s are paths
-    '''
     sample_maze = [
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
@@ -100,7 +99,6 @@ if __name__ == "__main__":
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     ]
-    '''
 
     # Another way to randomly generate 0 and 1
     #sample_maze = np.random.randint(0, 2, size=(64, 80))
