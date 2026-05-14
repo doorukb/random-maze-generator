@@ -5,6 +5,9 @@ This project focuses on perfect maze generation using a recursive divide-and-con
 The algorithm works by recursively dividing a chamber into two sub-chambers with a wall, then cutting exactly one passage through that wall. Because each division produces exactly one passage, no cycle can ever be formed between any two sub-mazes. The maze is proven correct by induction: the base cases are trivially perfect, and each recursive step combines two perfect sub-mazes through a single connection, preserving both connectivity and acyclicity.
 
 
+<img width="300" height="300" alt="maze" src="https://github.com/user-attachments/assets/938b319c-7317-43ea-a81c-d16c0bc05d90" />
+
+
 Algorithm Details
 
 The maze is represented as a 2D binary matrix where 1 is a wall and 0 is a passage. The outer border is initialized as walls, and one entrance and one exit are randomly placed on opposite sides.
