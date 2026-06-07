@@ -5,37 +5,41 @@ import matplotlib.pyplot as plt
 from time import time
 from visualization import visualize_binary_maze
 
-def init_maze(n=64):
-    maze = np.zeros((n, n), dtype=int)
+# initializes a maze with the given number of rows and columns
+def init_maze(rows=64, cols=None):
+    if cols is None:
+        cols = rows
+    maze = np.zeros((rows, cols), dtype=int)
     maze[0, :] = 1
-    maze[n - 1, :] = 1
+    maze[rows - 1, :] = 1
     maze[:, 0] = 1
-    maze[:, n - 1] = 1
-    entrance = random.randrange(1, n - 1, 2)  
-    exit = random.randrange(1, n - 1, 2)
+    maze[:, cols - 1] = 1
+    entrance = random.randrange(1, rows - 1, 2)
+    exit = random.randrange(1, rows - 1, 2)
     maze[entrance, 0] = 0
-    maze[exit, n - 1] = 0
+    maze[exit, cols - 1] = 0
     return maze
 
+# generates a perfect maze using the given maze
 def maze_generator(maze):
-    n = len(maze)
-    my_perfect_maze_generation_algorithm(maze, 0, n - 1, 0, n - 1)
+    rows, cols = maze.shape
+    my_perfect_maze_generation_algorithm(maze, 0, rows - 1, 0, cols - 1)
 
-    for c in range(1, n - 1):
+    for c in range(1, cols - 1):
         if maze[0, c] == 0:
             maze[1, c] = 0
-        if maze[n - 1, c] == 0:
-            maze[n - 2, c] = 0
-    for r in range(1, n - 1):
+        if maze[rows - 1, c] == 0:
+            maze[rows - 2, c] = 0
+    for r in range(1, rows - 1):
         if maze[r, 0] == 0:
             maze[r, 1] = 0
-        if maze[r, n - 1] == 0:
-            maze[r, n - 2] = 0
+        if maze[r, cols - 1] == 0:
+            maze[r, cols - 2] = 0
 
     return maze
 
+# generates a perfect maze using the given maze
 def my_perfect_maze_generation_algorithm(maze, row_bottom, row_top, column_left, column_right):
-
     interior_width = column_right - column_left
     interior_height = row_top - row_bottom
 
@@ -85,7 +89,7 @@ def my_perfect_maze_generation_algorithm(maze, row_bottom, row_top, column_left,
         my_perfect_maze_generation_algorithm(maze, row_bottom, row_top, column_left, vertical_wall)
         my_perfect_maze_generation_algorithm(maze, row_bottom, row_top, vertical_wall, column_right)
 
-    
+# measures the time taken to generate a perfect maze
 def time_to_gen(n):
     maze = init_maze(n)
     start_time = time()
@@ -93,6 +97,7 @@ def time_to_gen(n):
     end_time = time()
     return end_time - start_time
 
+# plots the time taken to generate a perfect maze
 def plot_time_growth(ns=[2,4,8,16,32,64,128,256]):
     times = [time_to_gen(n) for n in ns]
     plt.plot(ns, times)
@@ -104,7 +109,8 @@ def plot_time_growth(ns=[2,4,8,16,32,64,128,256]):
     plt.show()
     return
 
-def bonus(maze):
+# solves the maze by finding the shortest path in the given maze
+def solver(maze):
     maze = np.array(maze)
     n = maze.shape[0]
     m = maze.shape[1]
@@ -206,13 +212,16 @@ def bonus(maze):
 
 
 if __name__ == '__main__':
+    # rows x cols (height x width); omit cols for a square maze
+    rows, cols = 32, 48
+
     # Test 1:
-    init = init_maze(32)
-    visualize_binary_maze(init)
+    init = init_maze(rows, cols)
+    visualize_binary_maze(init, height=800, width=int(800 * cols / rows))
 
     # Test 2:
     gen_maze = maze_generator(init)
-    visualize_binary_maze(gen_maze)
+    visualize_binary_maze(gen_maze, height=800, width=int(800 * cols / rows))
 
     # Test 3:
     plot_time_growth()

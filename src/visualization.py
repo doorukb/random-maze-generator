@@ -6,12 +6,10 @@ import numpy as np
 COLOR_WALL = (0, 0, 0)       # Black for 1s
 COLOR_PATH = (255, 255, 255) # White for 0s
 
+# takes a 2D binary matrix representing a maze and visualizes it using Pygame.  
+# 1 = Wall (Black), 0 = Path (White).
+# keeps the window open until the user closes it.
 def visualize_binary_maze(matrix, height=800, width=800, save_dir=None):
-    """
-    Takes a 2D binary matrix representing a maze and visualizes it using Pygame.
-    1 = Wall (Black), 0 = Path (White).
-    Keeps the window open until the user closes it.
-    """
     # 1. Basic Validation
     rows = len(matrix)
     if rows == 0:
