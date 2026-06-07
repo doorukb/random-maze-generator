@@ -1,108 +1,174 @@
 import pygame
-import sys
 import numpy as np
 
-# --- Constants ---
-COLOR_WALL = (0, 0, 0)       # Black for 1s
-COLOR_PATH = (255, 255, 255) # White for 0s
+COLOR_WALL = (0, 0, 0)
+COLOR_PATH = (255, 255, 255)
+COLOR_VISITED = (170, 190, 255)
+COLOR_CURRENT = (255, 190, 40)
+COLOR_SOLUTION = (40, 180, 90)
 
-def visualize_binary_maze(matrix, height=800, width=800, save_dir=None):
-    """
-    Takes a 2D binary matrix representing a maze and visualizes it using Pygame.
-    1 = Wall (Black), 0 = Path (White).
-    Keeps the window open until the user closes it.
-    """
-    # 1. Basic Validation
-    rows = len(matrix)
-    if rows == 0:
-        print("Error: Empty matrix provided.")
-        return
-    cols = len(matrix[0])
-    if cols == 0:
-        print("Error: Matrix has rows but no columns.")
-        return
+# maze animator class to animate the maze generation and solution
+class MazeAnimator:
+    def __init__(self, maze, height=800, width=800, delay_ms=15):
+        self.maze = np.array(maze, dtype=int)
+        self.rows, self.cols = self.maze.shape
+        self.height = height
+        self.width = width
+        self.delay_ms = delay_ms
+        self.cell_w = width / self.cols
+        self.cell_h = height / self.rows
+        self.visited = set()
+        self.solution = set()
+        self.current = None
+        self._running = True
 
-    # 2. Pygame Setup
-    pygame.init()
+        pygame.init()
+        self.screen = pygame.display.set_mode((width, height))
+        pygame.display.set_caption(f"Maze ({self.cols}x{self.rows})")
+        self.clock = pygame.time.Clock()
 
-    cell_width = width / len(matrix[0])
-    cell_height = height / len(matrix)
-    
-    # Calculate window dimensions based on grid size and cell size
-    window_width = width
-    window_height = height
-    
-    screen = pygame.display.set_mode((window_width, window_height))
-    pygame.display.set_caption(f"Maze Visualization ({cols}x{rows})")
-    
-    # 3. Drawing Loop
-    # Fill background white first (assuming 0s are paths)
-    screen.fill(COLOR_PATH) 
+    def _cell_rect(self, row, col):
+        return pygame.Rect(col * self.cell_w, row * self.cell_h, self.cell_w, self.cell_h)
 
-    for r in range(rows):
-        for c in range(cols):
-            cell_value = matrix[r][c]
-            
-            # Calculate the position of this specific cell
-            x_pos = c * cell_width
-            y_pos = r * cell_height
-            
-            # Define the rectangular area for this cell
-            rect = pygame.Rect(x_pos, y_pos, cell_width, cell_height)
+    def _cell_color(self, row, col):
+        if (row, col) in self.solution:
+            return COLOR_SOLUTION
+        if self.current == (row, col):
+            return COLOR_CURRENT
+        if (row, col) in self.visited:
+            return COLOR_VISITED
+        return COLOR_WALL if self.maze[row, col] == 1 else COLOR_PATH
 
-            # Draw based on value
-            if cell_value == 1:
-                pygame.draw.rect(screen, COLOR_WALL, rect)
-            # (Optional: else draw white, but the background fill handles this)
-                
-    # Update the display to show what we just drew
-    pygame.display.flip()
+    def _draw_cell(self, row, col):
+        pygame.draw.rect(self.screen, self._cell_color(row, col), self._cell_rect(row, col))
 
-    print("Visualization open. Close the window to exit.")
+    def _draw_all(self):
+        self.screen.fill(COLOR_PATH)
+        for row in range(self.rows):
+            for col in range(self.cols):
+                self._draw_cell(row, col)
 
-    # 4. Event Loop to keep window open
-    running = True
-    while running:
-        # Cap the frame rate to prevent high CPU usage just waiting for events
-        pygame.time.Clock().tick(30) 
-        
+    def _pump_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                self._running = False
 
-    # If you want to save your maze you can do it with this
+    def _frame(self):
+        pygame.display.flip()
+        self.clock.tick(60)
+        if self.delay_ms > 0:
+            pygame.time.delay(self.delay_ms)
+        self._pump_events()
+
+    def apply_cell(self, row, col, value):
+        self.maze[row, col] = value
+        self._draw_cell(row, col)
+        self._frame()
+
+    def apply_visit(self, row, col):
+        self.current = (row, col)
+        self.visited.add((row, col))
+        self._draw_cell(row, col)
+        self._frame()
+
+    def apply_backtrack(self, row, col):
+        self.visited.discard((row, col))
+        if self.current == (row, col):
+            self.current = None
+        self._draw_cell(row, col)
+        self._frame()
+
+    def apply_solution(self, path):
+        self.solution = set(path)
+        self.current = None
+        self.visited.clear()
+        self._draw_all()
+        self._frame()
+
+    def wait_until_closed(self):
+        print("Animation complete. Close the window to exit.")
+        while self._running:
+            self.clock.tick(30)
+            self._pump_events()
+
+    def save(self, path):
+        pygame.image.save(self.screen, path)
+        print(f"Saved maze visualization to {path}")
+
+    def quit(self):
+        pygame.quit()
+
+# draw the static maze visualization
+def _draw_static(matrix, height, width):
+    rows, cols = len(matrix), len(matrix[0])
+    cell_w = width / cols
+    cell_h = height / rows
+    surface = pygame.Surface((width, height))
+    surface.fill(COLOR_PATH)
+    for row in range(rows):
+        for col in range(cols):
+            if matrix[row][col] == 1:
+                pygame.draw.rect(surface, COLOR_WALL, pygame.Rect(col * cell_w, row * cell_h, cell_w, cell_h))
+    return surface
+
+
+def visualize_binary_maze(matrix, height=800, width=800, save_dir=None, display=True):
+    rows = len(matrix)
+    if rows == 0 or len(matrix[0]) == 0:
+        print("Error: empty matrix provided.")
+        return
+
+    pygame.init()
+    surface = _draw_static(matrix, height, width)
+
+    if display:
+        screen = pygame.display.set_mode((width, height))
+        cols = len(matrix[0])
+        pygame.display.set_caption(f"Maze Visualization ({cols}x{rows})")
+        screen.blit(surface, (0, 0))
+        pygame.display.flip()
+        print("Visualization open. Close the window to exit.")
+
+        running = True
+        clock = pygame.time.Clock()
+        while running:
+            clock.tick(30)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+    else:
+        screen = surface
+
     if save_dir is not None:
         pygame.image.save(screen, save_dir)
-                
+        print(f"Saved maze visualization to {save_dir}")
     pygame.quit()
 
-# =========================================
-# Example Usage
-# =========================================
-if __name__ == "__main__":
-    # A sample 15x15 binary matrix representing a maze
-    # 1s are walls, 0s are paths
-    sample_maze = [
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
-        [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-        [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
-        [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1],
-        [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
-        [1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1],
-        [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
-        [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1],
-        [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
-        [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1],
-        [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    ]
+# animate the maze generation and solution
+def animate_maze(maze, generation_steps, solve_steps, height=800, width=800,
+                   delay_ms=15, save_dir=None):
+    animator = MazeAnimator(maze, height=height, width=width, delay_ms=delay_ms)
+    animator._draw_all()
+    animator._frame()
 
-    # Another way to randomly generate 0 and 1
-    #sample_maze = np.random.randint(0, 2, size=(64, 80))
+    for row, col, value in generation_steps:
+        if not animator._running:
+            break
+        animator.apply_cell(row, col, value)
 
-    # Notice that we can scale height and width to match the ratio of the dimensions (not needed for this proj)
-    # If save-dir is made not None then you can save your maze visualization
-    visualize_binary_maze(sample_maze, height=800, width=1000, save_dir=None)
+    for step in solve_steps:
+        if not animator._running:
+            break
+        kind = step[0]
+        if kind == "visit":
+            animator.apply_visit(step[1], step[2])
+        elif kind == "backtrack":
+            animator.apply_backtrack(step[1], step[2])
+        elif kind == "solution":
+            animator.apply_solution(step[1])
+
+    if save_dir is not None:
+        animator.save(save_dir)
+
+    animator.wait_until_closed()
+    animator.quit()
