@@ -1,3 +1,4 @@
+import argparse
 import heapq
 import random
 import numpy as np
@@ -210,18 +211,87 @@ def solver(maze):
     
     return solution
 
+# parses the arguments from the command line, so the maze size and
+# output options can be set without editing code
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='Generate and visualize perfect mazes.',
+    )
+    parser.add_argument(
+        '-r', '--rows', type=int, default=32,
+        help='number of rows / height (default: 32)',
+    )
+    parser.add_argument(
+        '-c', '--cols', type=int, default=None,
+        help='number of columns / width; defaults to --rows for a square maze',
+    )
+    parser.add_argument(
+        '-o', '--output', type=str, default=None,
+        help='save the generated maze image to this path (e.g. output/maze.png)',
+    )
+    parser.add_argument(
+        '--height', type=int, default=800,
+        help='visualization height in pixels (default: 800)',
+    )
+    parser.add_argument(
+        '--width', type=int, default=None,
+        help='visualization width in pixels (default: scaled from maze aspect ratio)',
+    )
+    parser.add_argument(
+        '--seed', type=int, default=None,
+        help='random seed for reproducible mazes',
+    )
+    parser.add_argument(
+        '--show-init', action='store_true',
+        help='also display the uninitialized border maze before generation',
+    )
+    parser.add_argument(
+        '--no-display', action='store_true',
+        help='save with --output without opening an interactive window',
+    )
+    parser.add_argument(
+        '--benchmark', action='store_true',
+        help='plot generation time vs maze size instead of generating a maze',
+    )
+    return parser.parse_args()
+
+def main():
+    args = parse_args()
+
+    if args.benchmark:
+        plot_time_growth()
+        return
+
+    if args.no_display and not args.output:
+        raise SystemExit('error: --no-display requires --output')
+
+    rows = args.rows
+    cols = args.cols if args.cols is not None else rows
+
+    if rows < 3 or cols < 3:
+        raise SystemExit('error: rows and cols must each be at least 3')
+
+    if args.seed is not None:
+        random.seed(args.seed)
+        np.random.seed(args.seed)
+
+    vis_height = args.height
+    vis_width = args.width if args.width is not None else int(vis_height * cols / rows)
+    display = not args.no_display
+
+    init = init_maze(rows, cols)
+
+    if args.show_init:
+        visualize_binary_maze(init, height=vis_height, width=vis_width, display=True)
+
+    gen_maze = maze_generator(init)
+    visualize_binary_maze(
+        gen_maze,
+        height=vis_height,
+        width=vis_width,
+        save_dir=args.output,
+        display=display,
+    )
 
 if __name__ == '__main__':
-    # rows x cols (height x width); omit cols for a square maze
-    rows, cols = 32, 48
-
-    # Test 1:
-    init = init_maze(rows, cols)
-    visualize_binary_maze(init, height=800, width=int(800 * cols / rows))
-
-    # Test 2:
-    gen_maze = maze_generator(init)
-    visualize_binary_maze(gen_maze, height=800, width=int(800 * cols / rows))
-
-    # Test 3:
-    plot_time_growth()
+    main()
