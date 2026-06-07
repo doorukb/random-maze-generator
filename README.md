@@ -1,4 +1,6 @@
-Random Maze Generator
+# Random Maze Generator
+
+- Python 3.8
 
 This project focuses on perfect maze generation using a recursive divide-and-conquer algorithm. A perfect maze is one that is fully connected (every cell is reachable from every other cell) and acyclic (there is exactly one path between any two points, meaning no loops). It generates a completely different maze each time the algorithm is run.
 
@@ -14,35 +16,43 @@ At each recursive step, the algorithm inspects the current chamber's interior di
 Wall positions are restricted to even-indexed rows or columns, and hole positions are restricted to odd-indexed rows or columns. This constraint prevents walls and holes from overlapping with each other across different recursive calls. The wall position is chosen randomly from all valid even-indexed positions within the current chamber, and the hole is chosen randomly from all valid odd-indexed positions along that wall. The algorithm then recurses on each of the two resulting sub-chambers.
 
 
-INSTALLATION 
-
-Python 3.8 or higher is required.
-
-Install the required packages:
+## Installation
     pip install -r requirements.txt
-    pip install pygame
 
 
-USAGE
-
-All runnable code is in the src/ directory. Run the scripts from the project root or from within the src/ directory.
+## Usage
     cd src
     python code.py
 
 
-You can import and call the visualization function directly:
+## CLI 
 
-    from visualization import visualize_binary_maze
-    visualize_binary_maze(your_matrix, height=800, width=800)
+- `-r`, `--rows` — maze height in rows (default: 32)
+- `-c`, `--cols` — maze width in columns (default: same as `--rows`)
+- `-o`, `--output` — save the final frame to a PNG path
+- `--height` — visualization height in pixels (default: 800)
+- `--width` — visualization width in pixels (default: scaled from aspect ratio)
+- `--seed` — random seed for reproducible mazes
+- `--delay` — milliseconds between animation frames (default: 15)
+- `--no-solve` — skip the DFS solution animation after generation
+- `--no-display` — save with `--output` without opening a window
+- `--show-init` — show the border-only maze in a separate static window before animation
+- `--benchmark` — plot generation time vs maze size instead of generating a maze
 
-Set save_dir to a file path string (e.g. "output/maze.png") to save the rendered image instead of only displaying it.
 
+## Examples
 
-Roadmap
+    # Default animated run (32×32)
+    python code.py
 
-- Add support for non-square (rectangular) maze dimensions as a starting input.
-- Expose a command-line interface so maze size and output options can be set without editing code.
-- Animate the maze generation step by step in the visualization window.
-- Visualize the A* solution path overlaid on the maze in a distinct color.
-- Add additional generation algorithms (e.g. Prim's, Kruskal's) for comparison.
-- Write unit tests to verify perfect maze properties (connectivity and acyclicity) on generated outputs.
+    # Rectangular maze with a fixed seed
+    python code.py -r 32 -c 48 --seed 42
+
+    # Faster animation on a larger maze
+    python code.py -r 64 --delay 5
+
+    # Headless PNG export (no animation, no DFS overlay)
+    python code.py -r 16 -o maze.png --no-display
+
+    # Benchmark plot only
+    python code.py --benchmark
