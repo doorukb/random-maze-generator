@@ -25,7 +25,7 @@ Wall positions are restricted to even-indexed rows or columns, and hole position
 
 ## Usage
     cd src
-    python code.py
+    python maze.py
 
 
 ## CLI 
@@ -46,16 +46,16 @@ Wall positions are restricted to even-indexed rows or columns, and hole position
 ## Examples
 
     # Default animated run (32×32)
-    python code.py
+    python maze.py
 
     # Rectangular maze with a fixed seed
-    python code.py -r 32 -c 48 --seed 42
+    python maze.py -r 32 -c 48 --seed 42
 
     # Faster animation on a larger maze
-    python code.py -r 64 --delay 5
+    python maze.py -r 64 --delay 5
 
     # Headless PNG export (no animation, no DFS overlay)
-    python code.py -r 16 -o maze.png --no-display
+    python maze.py -r 16 -o maze.png --no-display
 
     # Benchmark plot only
-    python code.py --benchmark
+    python maze.py --benchmark
