@@ -1,5 +1,7 @@
 # Random Maze Generator
 
+[![CI](https://github.com/doorukb/Random-maze-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/doorukb/Random-maze-generator/actions/workflows/ci.yml)
+
 - Python 3.8
 
 This project focuses on perfect maze generation using a recursive divide-and-conquer algorithm. A perfect maze is one that is fully connected (every cell is reachable from every other cell) and acyclic (there is exactly one path between any two points, meaning no loops). It generates a completely different maze each time the algorithm is run.
@@ -10,7 +12,7 @@ The algorithm works by recursively dividing a chamber into two sub-chambers with
 <img width="300" height="300" alt="maze" src="https://github.com/user-attachments/assets/938b319c-7317-43ea-a81c-d16c0bc05d90" />
 
 
-Algorithm Details
+## Algorithm Details
 
 The maze is represented as a 2D binary matrix where 1 is a wall and 0 is a passage. The outer border is initialized as walls, and one entrance and one exit are randomly placed on opposite sides.
 
@@ -59,3 +61,10 @@ Wall positions are restricted to even-indexed rows or columns, and hole position
 
     # Benchmark plot only
     python maze.py --benchmark
+
+## Testing
+
+    pip install pytest
+    python -m pytest tests/ -q
+
+The suite asserts the perfect-maze invariants directly: the passage graph is fully connected and acyclic (a spanning tree), the border has exactly one entrance and one exit, and seeded runs are reproducible.
